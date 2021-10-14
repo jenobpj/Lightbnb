@@ -17,16 +17,20 @@ const pool = new Pool({
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithEmail = function(email) {
-  let user;
-  for (const userId in users) {
-    user = users[userId];
-    if (user.email.toLowerCase() === email.toLowerCase()) {
-      break;
-    } else {
-      user = null;
-    }
-  }
-  return Promise.resolve(user);
+  const queryString =`SELECT * FROM users WHERE email =$1`;
+  console.log('line 21')
+  const values=[email];
+  console.log(email)
+  return pool
+  .query(queryString,values)
+  .then((res)=>{
+    console.log(res.rows[0])
+    return res.rows[0];
+  })
+  .catch((err)=>{
+    console.log(err)
+  })
+
 }
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -36,7 +40,17 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithId = function(id) {
-  return Promise.resolve(users[id]);
+  //return Promise.resolve(users[id]);
+  const queryString=`SELECT * FROM users WHERE ID =$1`
+  const values=[id];
+  return pool
+  .query(queryString,values)
+  .then((res)=>{
+    return res.rows[0]
+  })
+  .catch((err)=>{
+    console.log(err)
+  })
 }
 exports.getUserWithId = getUserWithId;
 
@@ -47,10 +61,20 @@ exports.getUserWithId = getUserWithId;
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser =  function(user) {
-  const userId = Object.keys(users).length + 1;
-  user.id = userId;
-  users[userId] = user;
-  return Promise.resolve(user);
+  const queryString=`INSERT INTO users (name,email,password)
+  VALUES($1,$2,$3) RETURNING *;`;
+  console.log('line 54')
+  const values=[user.name,user.email,user.password]
+  console.log(user.email)
+  return pool
+  .query(queryString,values)
+  .then((res)=>{
+    console.log(res.rows[0]);
+    return res.rows[0];
+  })
+  .catch((err) => {
+    console.log(err.message)
+  });
 }
 exports.addUser = addUser;
 
@@ -81,7 +105,7 @@ const getAllProperties = function(options, limit = 10) {
     return result.rows;
   })
   .catch((err)=>{
-    console.log(err.message);
+    console.log(err);
   });
 };
 exports.getAllProperties = getAllProperties;
